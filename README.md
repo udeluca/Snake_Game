@@ -79,7 +79,6 @@ Snake_Game/
 2. **Clone this repository:**
    ```bash
    git clone https://github.com/udeluca/Snake_Game.git
-   cd "Snake - Final Project"
    ```
 3. **Run the game:**
    ```bash
@@ -106,4 +105,5 @@ Git is now used going forward for proper source control, branching, and commit h
 
 ## Screenshots
 
+![](https://github.com/udeluca/Snake_Game/blob/main/Previous_Versions/Recording%202026-07-07%20141010.gif)
 
