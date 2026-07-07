@@ -2,6 +2,8 @@
 The Snake AI uses A* as its primary pathfinding algorithm but validates each food path before committing to it. It simulates the board after following the path and eating, then performs a second A* search to verify the head can still reach the tail, falling back to tail-chasing if the food path is unsafe. If no A* path exists (for tail or food), it safely selects the best legal adjacent move instead of failing (using a flood-fill algorithm). The flood-fill algorithm evaluates the amount of reachable free space for each candidate move, helping the AI avoid paths that would trap it in small enclosed regions. These heuristic safeguards significantly reduce self-trapping while keeping A* as the core decision-making algorithm.
 ]]
 
+-- A* algorithm inspiration from: https://www.geeksforgeeks.org/dsa/a-search-algorithm/
+
 AI = Class{}
 
 function AI:init()
