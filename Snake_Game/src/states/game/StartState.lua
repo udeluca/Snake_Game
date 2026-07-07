@@ -61,7 +61,7 @@ function StartState:update(dt)
 
     -- Out-of-bounds checking: left/right or top/bottom; Hitting its own body part checking; Win condition checking
     local x, y = self.board.player.gridHeadX, self.board.player.gridHeadY
-    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0 or self.board.player.body[x + 1][y + 1] or self.board.player.score == BOARD_DIMENSIONS*BOARD_DIMENSIONS then
+    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0 or self.board.player.body[x + 1][y + 1] or self.board.player.score == (BOARD_DIMENSIONS*BOARD_DIMENSIONS) - 1 then
         gStateMachine:change('start')
     end
 
