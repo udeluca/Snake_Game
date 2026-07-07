@@ -12,7 +12,7 @@ end
 
 -- Check if the cell is unblocked
 function AI:is_not_blocked(grid, row, col)
-    return not grid[col + 1][row + 1]
+    return grid[col + 1][row + 1] == false
 end
 
 -- Check if the cell is the destination
@@ -23,39 +23,6 @@ end
 -- Calculate the heuristic value of a cell (using Manhantan distance as h)
 function AI:h_value(row, col, dest)
     return math.abs(row - dest[1]) + math.abs(col - dest[2])
-end
-
--- Build an occupancy grid
-function AI:build_occupancy(bodyGrid)
-    local grid = {}
-    for x = 0, self.Col - 1 do
-        grid[x + 1] = {}
-        for y = 0, self.Row - 1 do
-            grid[x + 1][y + 1] = false
-        end
-    end
-
-    for i = 1, #bodyGrid do
-        local x = bodyGrid[i].gridX
-        local y = bodyGrid[i].gridY
-        grid[x + 1][y + 1] = true
-    end
-
-    return grid
-end
-
-function AI:simulate_step(player, nextCell, object)
-
-    local willEat = (nextCell[1] == object.posGridY and nextCell[2] == object.posGridX)
-
-    if willEat then
-        player:grow(object)
-    end
-
-    player:updateCells()
-    local newVT  = player:updateVacateTime()
-
-    return newVT
 end
 
 -- Trace the path from source to destination
@@ -99,8 +66,7 @@ function AI:track_path(set_of_cells, dest)
 end
 
 -- Implementing the A* search algorithm
-function AI:a_star_search(grid, src, dest, vacate_time)
-
+function AI:a_star_search(grid, src, dest)
     -- Initiating open list (list that holds all unexplored cells) - Data Structure used: Map
     local unexploredCells = {}
     -- Initiating closed list (list that holds explored cells) - Data Structure used: Map
@@ -159,13 +125,8 @@ function AI:a_star_search(grid, src, dest, vacate_time)
             local neighborKey = string.format("(%i, %i)", neighborRow, neighborCol)
             local neighbor = { row = neighborRow, col = neighborCol, f = 0, g = 0, h = 0, parents = {q["row"], q["col"]}}
 
-            local arrival = q["g"] + 1
-            local vt = math.huge
-            if self:is_valid(neighbor["row"], neighbor["col"]) and not (vacate_time[neighbor["col"] + 1][neighbor["row"] + 1] == nil) then
-                vt = vacate_time[neighbor["col"] + 1][neighbor["row"] + 1]
-            end
             -- Checking if the neighbor is valid and not blocked
-            if self:is_valid(neighbor["row"], neighbor["col"]) and (self:is_not_blocked(grid, neighbor["row"], neighbor["col"]) or arrival >= vt) then
+            if self:is_valid(neighbor["row"], neighbor["col"]) and self:is_not_blocked(grid, neighbor["row"], neighbor["col"]) then
 
                 -- If is the destination, stop search
                 if self:is_destination(neighbor["row"], neighbor["col"], dest) then
@@ -179,15 +140,17 @@ function AI:a_star_search(grid, src, dest, vacate_time)
                     break
                 else
                     -- Compute g, h,and f values
-                    neighbor["g"] = arrival
+                    neighbor["g"] = q["g"] + 1
                     neighbor["h"] = self:h_value(neighbor["row"], neighbor["col"], dest)
                     neighbor["f"] = neighbor["g"] + neighbor["h"]
 
+                    --local insertFlag = true
                     -- Checking if same cell (position) is already in the open list with a lower f value
                     -- If yes, swap values in case the already existing value is bigger
                     if not (unexploredCells[neighborKey] == nil) and neighbor["f"] < unexploredCells[neighborKey]["f"] then
                         unexploredCells[neighborKey] = neighbor
                         allCells[neighborKey] = neighbor
+                        --insertFlag = false
                     end
 
                     -- Checking if same cell (position) is already in the closed list list with a lower f value
@@ -196,6 +159,7 @@ function AI:a_star_search(grid, src, dest, vacate_time)
                         exploredCells[neighborKey] = nil
                         unexploredCells[neighborKey] = neighbor
                         allCells[neighborKey] = neighbor
+                        --insertFlag = false
                     end
 
                     -- Adding neighbor to the open list in case it is in neither of the lists
@@ -209,6 +173,7 @@ function AI:a_star_search(grid, src, dest, vacate_time)
 
         -- If destination is reached, stop search
         if found_dest then
+            print("Destination Reached")
             break
         end
 
@@ -216,7 +181,6 @@ function AI:a_star_search(grid, src, dest, vacate_time)
         exploredCells[qKey] = q
         allCells[qKey] = q
 
-        -- If unexplored list is empty (explored all possible cells), break the while loop
         Flag = false
         for k, node in pairs(unexploredCells) do
             if not (node == nil) then

@@ -44,17 +44,13 @@ function Player:init(def)
     -- Getting rotation
     self.rotation = ANGLE[self.direction]
 
-    -- Creating AI if player is AI
+    -- Creating AI is player is AI
     self.path = nil
     self.AI = nil
     if self.isAI then
         self.AI = AI()
     end
 
-    self.vacate_times = {}
-    for col = 0, BOARD_DIMENSIONS - 1 do
-        table.insert(self.vacate_times, {})
-    end
 end
 
 function Player:update(dt)
@@ -86,15 +82,14 @@ function Player:update(dt)
             -- Updating if the cell is occupied by the body or not
             self:updateCells()
 
+            -- Make head appear as blocked in the body grid
+            self.body[prevGX + 1][prevGY + 1] = true 
+
             -- Only update each body part after it knows who it should follow 
             -- Otherwise it will only update who it should be following in the next frame (different position from where it was)
             self:updateParts(prevGX, prevGY)
             for i = 1, #self.bodyGrid do
                 self.bodyGrid[i]:update(dt)
-            end
-
-            if self.isAI then
-                self.vacate_times = self:updateVacateTime()
             end
         end
 
@@ -197,7 +192,7 @@ function Player:grow(object)
         gridY = body.gridY
     end
 
-    -- Create new body part (every body part is added at the end of the body - tail)
+    -- Create new boody part (every body part is added at the end of the body - tail)
     local bodyPart = PlayerParts{
         x = x,
         y = y,
@@ -225,13 +220,13 @@ function Player:updateParts(prevHeadGridX, prevHeadGridY)
         self.bodyGrid[1].nextGridX = prevHeadGridX
         self.bodyGrid[1].nextGridY = prevHeadGridY
 
-        -- All other body part should follow the body part next to their previous position
+        -- All other body part should follow the body part next to them previous position
         while count > 1 do
             local prev = self.bodyGrid[count-1]
             local current  = self.bodyGrid[count]
             current.nextGridX = prev.gridX
-            current.nextGridY = prev.gridY
-            
+            current.nextGridY = prev.gridY 
+
             count = count - 1
         end
     end
@@ -245,29 +240,10 @@ function Player:updateCells()
         end
     end
 
-    local prevGX, prevGY = self.gridHeadX, self.gridHeadY
-    -- Make head appear as blocked in the body grid
-    self.body[prevGX + 1][prevGY + 1] = true 
     for k = 1, #self.bodyGrid do
         -- Update the position on the board (so it is marked as occupied)
         self.body[self.bodyGrid[k].gridX + 1][self.bodyGrid[k].gridY + 1] = true
     end
-end
-
-function Player:updateVacateTime()
-    local vacate_times = {}
-    for col = 0, BOARD_DIMENSIONS - 1 do
-        vacate_times[col + 1] = {}
-        for row = 0, BOARD_DIMENSIONS - 1 do
-            vacate_times[col + 1][row + 1] = nil
-        end
-    end
-
-    for k = 1, #self.bodyGrid do
-        vacate_times[self.bodyGrid[k].gridX + 1][self.bodyGrid[k].gridY + 1] = #self.bodyGrid - k
-    end
-
-    return vacate_times
 end
 
 function Player:render()
