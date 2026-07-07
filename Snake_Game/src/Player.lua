@@ -257,9 +257,9 @@ end
 -- Getting the coordinates of each segment of the snake (head + body parts) in a list
 function Player:get_segments()
     local segments = {}
-    table.insert(segments, {self.gridHeadX, self.gridHeadY})
+    table.insert(segments, {self.gridHeadY, self.gridHeadX})
     for k = 1, #self.bodyGrid do
-        table.insert(segments, {self.bodyGrid[k].gridX, self.bodyGrid[k].gridY})
+        table.insert(segments, {self.bodyGrid[k].gridY, self.bodyGrid[k].gridX})
     end
     return segments
 end

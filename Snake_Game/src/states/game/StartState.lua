@@ -28,13 +28,9 @@ function StartState:init()
 
     self.board = Board(self.player, self.object)
 
-    local srcJ = self.board.player.gridHeadX
-    local srcI = self.board.player.gridHeadY
-
-    local destI = self.board.object.posGridY
-    local destJ = self.board.object.posGridX
-
-    self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ})
+    local segments = self.board.player:get_segments()
+    local food = {self.board.object.posGridY, self.board.object.posGridX}
+    self.board.player.path = self.board.player.AI:plan_path(self.board.player.body, segments, food)
 end
 
 function StartState:update(dt)
@@ -58,21 +54,23 @@ function StartState:update(dt)
         self.board.player:grow(self.board.object)
         self.board:respawnObject()
 
-        local srcJ = self.board.player.gridHeadX
-        local srcI = self.board.player.gridHeadY
-
-        local destI = self.board.object.posGridY
-        local destJ = self.board.object.posGridX
-
-        self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ})
+        local segments = self.board.player:get_segments()
+        local food = {self.board.object.posGridY, self.board.object.posGridX}
+        self.board.player.path = self.board.player.AI:plan_path(self.board.player.body, segments, food)
     end
 
     -- Out-of-bounds checking: left/right or top/bottom; Hitting its own body part checking; Win condition checking
     local x, y = self.board.player.gridHeadX, self.board.player.gridHeadY
-    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0  then--or self.board.player.body[x + 1][y + 1] or self.board.player.score == BOARD_DIMENSIONS*BOARD_DIMENSIONS then
+    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0 or self.board.player.body[x + 1][y + 1] or self.board.player.score == BOARD_DIMENSIONS*BOARD_DIMENSIONS then
         gStateMachine:change('start')
     end
 
+    -- If path is exhausted, plan a new path to the food
+    if (self.board.player.path == nil or #self.board.player.path < 2) then
+        local segments = self.board.player:get_segments()
+        local food = {self.board.object.posGridY, self.board.object.posGridX}
+        self.board.player.path = self.board.player.AI:plan_path(self.board.player.body, segments, food)
+    end
 end
 
 function StartState:render()
