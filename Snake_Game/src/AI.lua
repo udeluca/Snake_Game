@@ -221,10 +221,12 @@ function AI:plan_path(body, segments, food)
 
     -- Fall back to tail chasing if food path is not safe
     local tail = segments[#segments]
-    local freedRealGrid = self:grid_with_cell_freed(body, tail)
-    local tailPath = self:a_star_search(freedRealGrid, head, tail)
-    if not (tailPath == nil) then
-        return tailPath
+    if #segments > 1 then
+        local freedRealGrid = self:grid_with_cell_freed(body, tail)
+        local tailPath = self:a_star_search(freedRealGrid, head, tail)
+        if not (tailPath == nil) then
+            return tailPath
+        end
     end
 
     -- Fall back to safest adjacent move if tail path is not safe

@@ -63,14 +63,15 @@ function Board:respawnObject()
     local flag = true
     -- Loop until the fruit is respawned randomly
     while flag do
+        -- If player wins, do not need to respawn the object
+        if self.player.score == (BOARD_DIMENSIONS * BOARD_DIMENSIONS) - 1 then
+            break
+        end
+
         for col = 0, BOARD_DIMENSIONS - 1 do
             for row = 0, BOARD_DIMENSIONS - 1 do
                 -- Checking if the cell is not already occupied 
-                if not self.player.body[col + 1][row + 1] and (col ~= self.player.gridHeadX and row ~= self.player.gridHeadY) then
-                    -- If player wins, do not need to respawn the object
-                    if self.player.score == BOARD_DIMENSIONS * BOARD_DIMENSIONS then
-                        break
-                    end
+                if not self.player.body[col + 1][row + 1] and (col ~= self.player.gridHeadX or row ~= self.player.gridHeadY) then
                     
                     -- Random factor
                     if math.random(3) == 2 then
