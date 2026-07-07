@@ -20,7 +20,7 @@
     Credit for graphics (amazing work!):
     https://opengameart.org/users/buch
 
-    Credit for music (awesome track):s
+    Credit for music (awesome track):
     http://freemusicarchive.org/music/RoccoW/
 
     Cool texture generator, used for background:

@@ -34,7 +34,7 @@ function StartState:init()
     local destI = self.board.object.posGridY
     local destJ = self.board.object.posGridX
 
-    self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ}, self.board.player.vacate_times)
+    self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ})
 end
 
 function StartState:update(dt)
@@ -50,20 +50,7 @@ function StartState:update(dt)
 
     Timer.update(dt)
     self.board:update(dt)
-
-    local x, y = self.board.player.gridHeadX, self.board.player.gridHeadY
-
-    -- temporarily ignore the head cell in the occupancy grid
-    self.board.player.body[x + 1][y + 1] = false
-
-    local hit = self.board.player.body[x + 1][y + 1]  -- now this means "hit body"
-
-    -- restore
-    self.board.player.body[x + 1][y + 1] = true
-
-    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0 or hit or self.board.player.score == BOARD_DIMENSIONS * BOARD_DIMENSIONS then
-        gStateMachine:change('start')
-    end
+    
 
     -- Collision logic (score updates and grow & respawn functions are triggered)
     if self.board.player:headCollides(self.board.object) then
@@ -71,67 +58,21 @@ function StartState:update(dt)
         self.board.player:grow(self.board.object)
         self.board:respawnObject()
 
-        
         local srcJ = self.board.player.gridHeadX
         local srcI = self.board.player.gridHeadY
 
         local destI = self.board.object.posGridY
         local destJ = self.board.object.posGridX
 
-        self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ}, self.board.player.vacate_times)
-        
+        self.board.player.path = self.board.player.AI:a_star_search(self.board.player.body, {srcI, srcJ}, {destI, destJ})
     end
-    
-    if self.board.player.isAI and self.board.player.canAct then
-        if self.board.player.score > 0 and self.board.player.path ~= nil then
-            local nextCell = self.board.player.path[2]
 
-            if nextCell ~= nil then
-
-                local player = Player{
-                    headX = self.board.player.headX,
-                    headY = self.board.player.headY,
-                    gridHeadX = self.board.player.gridHeadX,
-                    gridHeadY = self.board.player.gridHeadY,
-                    score = self.board.player.score,
-                    direction = self.board.player.direction,
-                    isAI = true
-                }
-
-                player.body = self:deepcopy(self.board.player.body)
-                player.bodyGrid = self:deepcopy(self.board.player.bodyGrid)
-                player.vacate_times= self:deepcopy(self.board.player.vacate_times)
-
-                local simVT = self.board.player.AI:simulate_step(player, nextCell, self.board.object)
-
-                -- SAFETY CHECK WITH VACATE TIME:
-                -- Is there a path from new head to new tail in the simulated future state?
-                local destI = player.bodyGrid[#player.bodyGrid].gridY
-                local destJ = player.bodyGrid[#player.bodyGrid].gridX
-                local escapePath = self.board.player.AI:a_star_search(
-                    player.body,
-                    nextCell,      -- new head position (row,col)
-                    {destI, destJ},       -- simulated tail (row,col)
-                    simVT
-                )
-
-                local safe = (escapePath ~= nil)
-
-                if not safe then
-                    -- follow tail in CURRENT real state
-                    local tailI = self.board.player.bodyGrid[#self.board.player.bodyGrid].gridY
-                    local tailJ = self.board.player.bodyGrid[#self.board.player.bodyGrid].gridX
-
-                    self.board.player.path = self.board.player.AI:a_star_search(
-                        self.board.player.body,
-                        { self.board.player.gridHeadY, self.board.player.gridHeadX },
-                        {tailI, tailJ},
-                        self.board.player.vacate_times
-                    )
-                end
-            end
-        end
+    -- Out-of-bounds checking: left/right or top/bottom; Hitting its own body part checking; Win condition checking
+    local x, y = self.board.player.gridHeadX, self.board.player.gridHeadY
+    if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0  then--or self.board.player.body[x + 1][y + 1] or self.board.player.score == BOARD_DIMENSIONS*BOARD_DIMENSIONS then
+        gStateMachine:change('start')
     end
+
 end
 
 function StartState:render()
@@ -179,32 +120,4 @@ function StartState:render()
    love.graphics.setFont(gFonts["small"])
    love.graphics.print(sPath, score_locationX, score_locationY)
    ]]
-end
-
--- Copied from google
-function StartState:deepcopy(original, copies)
-    copies = copies or {}
-    local orig_type = type(original)
-    local copy
-
-    if orig_type ~= 'table' then
-        copy = original
-    elseif copies[original] then
-        copy = copies[original]
-    else
-        copy = {}
-        copies[original] = copy -- Store the copy in the cache
-        
-        -- Copy all key-value pairs recursively
-        for orig_key, orig_value in next, original, nil do
-            local new_key = self:deepcopy(orig_key, copies)
-            local new_value = self:deepcopy(orig_value, copies)
-            copy[new_key] = new_value
-        end
-        
-        -- Copy metatable recursively
-        setmetatable(copy, self:deepcopy(getmetatable(original), copies))
-    end
-
-    return copy
 end

@@ -38,9 +38,6 @@ function PlayerParts:init(def)
     -- Storing rotation angle
     self.rotation = ANGLE[self.direction]
 
-    -- Store how long until the cell is vacated
-    --self.vacate_time = nil
-
 end
 
 function PlayerParts:update(dt)
