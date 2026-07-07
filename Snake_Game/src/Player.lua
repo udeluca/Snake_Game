@@ -129,22 +129,30 @@ function Player:changeDirection()
         end 
     else
         if self.canAct then
-            -- Change direction based on next cell according to path
-            local nextCell = self.path[2]
-            local dj = nextCell[2] - self.gridHeadX
-            local di = nextCell[1] - self.gridHeadY
+            if not (self.path == nil) then
+                if #self.path >= 2 then
+                    -- Change direction based on next cell according to path (only if there is a path and it has more than 1 cells)
+                    local nextCell = self.path[2]
+                    local dj = nextCell[2] - self.gridHeadX
+                    local di = nextCell[1] - self.gridHeadY
 
-            if  dj > 0 then
-                self.direction = "right"
-            elseif dj < 0 then
-                self.direction = "left"
-            elseif di > 0 then
-                self.direction = "down"
-            elseif di < 0 then
-                self.direction = "up"
+                    if dj > 0 then
+                        self.direction = "right"
+                    elseif dj < 0 then
+                        self.direction = "left"
+                    elseif di > 0 then
+                        self.direction = "down"
+                    elseif di < 0 then
+                        self.direction = "up"
+                    end
+
+                    table.remove(self.path, 1)
+                else
+                    self.direction = self.direction
+                end
+            else
+                self.direction = self.direction
             end
-
-            table.remove(self.path, 1)
         end
     end
 end
@@ -244,6 +252,16 @@ function Player:updateCells()
         -- Update the position on the board (so it is marked as occupied)
         self.body[self.bodyGrid[k].gridX + 1][self.bodyGrid[k].gridY + 1] = true
     end
+end
+
+-- Getting the coordinates of each segment of the snake (head + body parts) in a list
+function Player:get_segments()
+    local segments = {}
+    table.insert(segments, {self.gridHeadX, self.gridHeadY})
+    for k = 1, #self.bodyGrid do
+        table.insert(segments, {self.bodyGrid[k].gridX, self.bodyGrid[k].gridY})
+    end
+    return segments
 end
 
 function Player:render()

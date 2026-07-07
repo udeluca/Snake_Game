@@ -72,6 +72,7 @@ function StartState:update(dt)
     if x > BOARD_DIMENSIONS - 1 or y > BOARD_DIMENSIONS - 1 or x < 0 or y < 0  then--or self.board.player.body[x + 1][y + 1] or self.board.player.score == BOARD_DIMENSIONS*BOARD_DIMENSIONS then
         gStateMachine:change('start')
     end
+
 end
 
 function StartState:render()
